@@ -1,15 +1,29 @@
+import { createSelector } from "reselect";
 import { State } from "../store";
 
-export function productLoadingSelector(state: State) {
-  return state.product.loading;
+export function productStateSelector (State : State) {
+  return State.product
 }
 
-export function productLoadedSelector(state: State) {
-  const normalisedProducts = state.product.product;
+export const productLoadingSelector = createSelector(
+  productStateSelector ,
+  function (productState) {
+    return productState.loading
+  }
+)
 
-  const productArr = Object.keys(normalisedProducts).map((pid) => {
-    return normalisedProducts[+pid];
-  });
+export const productIdSelector = createSelector(
+  productStateSelector,
+  function (orderState) {
+    return orderState.product;
+  }
+);
 
-  return productArr;
-}
+export const productLoadedSelector = createSelector(
+  productIdSelector,
+  function (normalisedProducts) {
+    return Object.keys(normalisedProducts).map((items) => {
+      return normalisedProducts[+items];
+    });
+  }
+);

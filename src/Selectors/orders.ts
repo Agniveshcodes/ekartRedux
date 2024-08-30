@@ -1,19 +1,48 @@
+import { createSelector } from "reselect";
+import { product } from "../models/product";
 import { State } from "../store";
+import { productIdSelector } from "./product";
 
-export function loadOrdersSelector(State: State) {
-  return State.orders.loading;
+export function orderStateSelector(State: State) {
+  return State.orders;
 }
 
-export function ordersLoadedSelector(State: State) {
-  const normalisedOrders = State.orders.orders;
+export const loadOrdersSelector = createSelector(
+  orderStateSelector,
+  function (orderState) {
+    return orderState.loading;
+  }
+);
 
-  const ordersArr = Object.keys(normalisedOrders).map((items) => {
-    return normalisedOrders[+items];
-  });
+export const orderIdSelector = createSelector(
+  orderStateSelector,
+  function (orderState) {
+    return orderState.orders;
+  }
+);
 
-  return ordersArr;
-}
+export const ordersLoadedSelector = createSelector(
+  orderIdSelector,
+  function (normalisedOrders) {
+    return Object.keys(normalisedOrders).map((items) => {
+      return normalisedOrders[+items];
+    });
+  }
+);
 
-export function orderIdSelector(State: State) {
-  return State.orders.orders;
-}
+export const orderProductsSelector = createSelector(
+  orderIdSelector,
+  productIdSelector,
+  function (orderMap, productMap) {
+    return Object.keys(orderMap).reduce<{
+      [orderId: number]: product[];
+    }>((previous, currentOrderId) => {
+      const order = orderMap[+currentOrderId];
+      const products = order.products.map((pId) => {
+        return productMap[pId];
+      });
+      return { ...previous, [currentOrderId]: products };
+    }, {});
+  }
+);
+

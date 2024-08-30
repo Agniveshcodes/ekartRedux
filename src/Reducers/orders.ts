@@ -1,7 +1,12 @@
 import { AnyAction } from "redux";
 import { produce } from "immer";
 import { orders } from "../models/orders";
-import { LOAD_ORDERS, ORDER_DETAIL_LOADED, ORDERS_LOADED } from "../Actions/orders";
+import {
+  LOAD_ORDERS,
+  ORDER_DETAIL_LOADED,
+  ORDERS_LOADED,
+} from "../Actions/orders";
+import { normalize, schema } from "normalizr";
 
 export type State = {
   loading: boolean;
@@ -24,19 +29,28 @@ function ordersReducer(State = initialState, action: AnyAction): State {
         draft.loading = false;
         const orderArr = action.payload;
 
-        orderArr.reduce((previous: any, current: orders) => {
+        const productEntity = new schema.Entity("products");
+        const orderEntity = new schema.Entity("orders", {
+          products: [productEntity],
+        });
 
-          return { ...previous, [current.id]: current };
-        }, {});
+        const normalised = normalize(orderArr, [orderEntity]);
 
-        draft.orders = orderArr
+        draft.orders = normalised.entities.orders!;
       });
-      case ORDER_DETAIL_LOADED: 
-      return produce(State , (draft)=> {
-        const order = action.payload
+    case ORDER_DETAIL_LOADED:
+      return produce(State, (draft) => {
+        const order = action.payload;
 
-        draft.orders[order.id] = order
-      })
+        const productEntity = new schema.Entity("products");
+        const orderEntity = new schema.Entity("orders", {
+          products: [productEntity],
+        });
+
+        const normalised = normalize(order, [orderEntity]);
+
+        draft.orders[order.id] = normalised.entities.orders![order.id];
+      });
 
     default:
       return State;

@@ -15,7 +15,7 @@ const OrderListPage: FC<OrderListPageProps> = () => {
 
   useEffect(() => {
     dispatch(loadOrdersAction());
-    axios.get("https:dummyjson.com/carts").then((res) => {
+    axios.get("https://dummyjson.com/carts").then((res) => {
       return dispatch(orderLoadedAction(res.data.carts));
     });
   }, []);
